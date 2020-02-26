@@ -160,8 +160,11 @@ def main():
             cv2.circle(img=window,center=(x+w//2,y+h//2), radius=w//2, color=(255,0,0), thickness=1)
             cv2.circle(img=window,center=(x+w//2,y+h//2), radius=(7*w//20), color=(255,0,0), thickness=1)
         else:
+            window[275:375,350:450] = cv2.cvtColor(cv2.resize(masked,(100,100)), cv2.COLOR_GRAY2BGR)
             predimg = masked / 255.
             predimg = cv2.resize(predimg,(50,50))
+            cv2.rectangle(img=window, pt1=(350,275), pt2=(450,375), color=(255,0,0), thickness=2)
+            #window[300:350,200:250] = cv2.cvtColor(predimg, cv2.COLOR_GRAY2BGR)
             predimg = predimg.reshape(1,50,50,1)
             classes = model.predict(predimg)
             mypredict = np.argmax(classes)    
