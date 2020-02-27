@@ -2,5 +2,5 @@
 
 
 
-![prediction](prediction.gif)
+![prediction](predictions.gif)
 
