@@ -129,10 +129,7 @@ def main():
 
         # save image to disk as original
         if key == ord('s') and mode_predict == False:
-            
             saveimg = masked
-            #saveimg = cv2.cvtColor(roi, code=cv2.COLOR_BGR2GRAY)
-            
             filename = os.path.join(orig_path , 'original_%d_%d.png' % (nb,count))
             cv2.imwrite(filename,saveimg)
             count += 1
@@ -150,7 +147,7 @@ def main():
         if key == ord('q'):
             break
 
-        # Show which number for saving
+        # Switch between Recording and Prediction mode
         if mode_predict == False:
             cv2.putText(window, "Mode - Record pictures", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
             cv2.putText(window, "(s) to save", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
@@ -164,7 +161,6 @@ def main():
             predimg = masked / 255.
             predimg = cv2.resize(predimg,(50,50))
             cv2.rectangle(img=window, pt1=(350,275), pt2=(450,375), color=(255,0,0), thickness=2)
-            #window[300:350,200:250] = cv2.cvtColor(predimg, cv2.COLOR_GRAY2BGR)
             predimg = predimg.reshape(1,50,50,1)
             classes = model.predict(predimg)
             mypredict = np.argmax(classes)    
