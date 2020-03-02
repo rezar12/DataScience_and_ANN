@@ -3,6 +3,9 @@ import copy
 import os
 import numpy as np
 import random
+import pickle
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "2" 
 
 def generate_augmented_images():
 
@@ -73,10 +76,13 @@ def main():
     from keras.models import load_model
     model = load_model('model.h5')
 
+    model_classic = pickle.load(open('model_classic.sav', 'rb'))
+
     # Initialize variables
     mask_visible2 = False
     mask_visible = False
     mode_predict = False
+    mode_predict_classic = False
     x = 400
     y = 150
     w = 200
@@ -141,6 +147,8 @@ def main():
             mask_visible2 = not mask_visible2
         if key == ord('p'):
             mode_predict = not mode_predict
+        if key == ord('y'):
+            mode_predict_classic = not mode_predict_classic
         if key == ord('a'):
             generate_augmented_images()
 
@@ -149,14 +157,26 @@ def main():
 
         # Switch between Recording and Prediction mode
         if mode_predict == False:
-            cv2.putText(window, "Mode - Record pictures", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
-            cv2.putText(window, "(s) to save", (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
-            cv2.putText(window, "nb of fingers = %d" % nb, (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
-            cv2.putText(window, "(p) for predict mode", (10, 410), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 1)
+            cv2.putText(window, "Record pictures - (s) to save", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(window, "nb of fingers = %d" % nb, (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(window, "(p) for predict mode", (250, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
             # show some guilines to help getting good pictures
             cv2.circle(img=window,center=(x+w//2,y+h//2), radius=w//2, color=(255,0,0), thickness=1)
             cv2.circle(img=window,center=(x+w//2,y+h//2), radius=(7*w//20), color=(255,0,0), thickness=1)
+        elif mode_predict_classic:
+            # use RandomForest Classifer model
+            window[275:375,350:450] = cv2.cvtColor(cv2.resize(masked,(100,100)), cv2.COLOR_GRAY2BGR)
+            predimg = masked / 255.
+            predimg = cv2.resize(predimg,(50,50))
+            cv2.rectangle(img=window, pt1=(350,275), pt2=(450,375), color=(255,0,0), thickness=2)
+            predimg = predimg.reshape(1,2500)
+            result = model_classic.predict(predimg)
+            mypredict = result[0]   
+            cv2.putText(window, "Predict (RF) - (y): switch to CNN", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+            cv2.putText(window, "prediction = %d" % mypredict, (380, 140), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+            cv2.putText(window, "(p) for record mode", (250, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         else:
+            # use CNN model
             window[275:375,350:450] = cv2.cvtColor(cv2.resize(masked,(100,100)), cv2.COLOR_GRAY2BGR)
             predimg = masked / 255.
             predimg = cv2.resize(predimg,(50,50))
@@ -164,11 +184,11 @@ def main():
             predimg = predimg.reshape(1,50,50,1)
             classes = model.predict(predimg)
             mypredict = np.argmax(classes)    
-            cv2.putText(window, "Mode - Predict", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 1)
-            cv2.putText(window, "prediction = %d" % mypredict, (380, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
-            cv2.putText(window, "(p) for record mode", (10, 410), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+            cv2.putText(window, "Predict (CNN) - (y): switch to RF", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+            cv2.putText(window, "prediction = %d" % mypredict, (380, 140), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+            cv2.putText(window, "(p) for record mode", (250, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
-        cv2.putText(window, "(q) to quit", (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
+        cv2.putText(window, "(q) to quit", (10, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # Display image
         cv2.imshow('WebCam', window)
