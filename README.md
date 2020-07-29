@@ -1,4 +1,4 @@
-# Artificial-Neural-Networks
+# Datascience and Artificial-Neural-Networks practical ressources
 
 ### Collection of very good notebooks from Harvard classes:
 
